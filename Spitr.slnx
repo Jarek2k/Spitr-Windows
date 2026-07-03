@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Spitr.Core/Spitr.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Spitr.Core.Tests/Spitr.Core.Tests.csproj" />
+  </Folder>
+</Solution>

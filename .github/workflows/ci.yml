@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_NOLOGO: 1
+
+jobs:
+  # Spiegelt den lokalen Mac-Innenloop: gesamte Core-Logik + Whisper-Integration.
+  core-macos:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Test Spitr.Core
+        run: dotnet test tests/Spitr.Core.Tests -c Release
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Build solution
+        run: dotnet build Spitr.sln -c Release
+      - name: Test Spitr.Core (Windows)
+        run: dotnet test tests/Spitr.Core.Tests -c Release --no-build
+
+  # Privacy-Wächter: HttpClient & Co. sind ausschließlich in ModelDownloader erlaubt.
+  no-network-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Grep for network code outside ModelDownloader
+        run: |
+          hits=$(grep -rn --include='*.cs' -E 'HttpClient|WebRequest|WebClient|HttpWebRequest' src/ | grep -v 'ModelDownloader' || true)
+          if [ -n "$hits" ]; then
+            echo "$hits"
+            echo "::error::Netzwerk-Code außerhalb von ModelDownloader gefunden"
+            exit 1
+          fi

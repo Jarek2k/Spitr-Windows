@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Spitr.Core</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- NAudio.Core ist rein managed (WdlResampler, WaveFormat) — läuft auf macOS -->
+    <PackageReference Include="NAudio.Core" />
+    <!-- Whisper.net = managed Bindings; die nativen Runtimes liefern Tests/App -->
+    <PackageReference Include="Whisper.net" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,26 @@
+<Project>
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Core (plattformneutral) -->
+    <PackageVersion Include="NAudio.Core" Version="2.3.0" />
+    <PackageVersion Include="Whisper.net" Version="1.9.1" />
+    <!-- Native whisper.cpp-Runtimes (win-x64/arm64 + osx-arm64) — nur Tests + App -->
+    <PackageVersion Include="Whisper.net.Runtime" Version="1.9.1" />
+
+    <!-- App (Windows-only, ab Phase 3) -->
+    <PackageVersion Include="NAudio.Wasapi" Version="2.3.0" />
+    <PackageVersion Include="H.NotifyIcon.Wpf" Version="2.4.1" />
+    <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.298" />
+    <PackageVersion Include="FlaUI.UIA3" Version="5.0.0" />
+
+    <!-- Tests -->
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+  </ItemGroup>
+
+</Project>
