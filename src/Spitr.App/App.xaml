@@ -1,6 +1,9 @@
 <Application x:Class="Spitr.App.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             ShutdownMode="OnExplicitShutdown">
-    <!-- Tray-only-App: kein StartupUri, kein MainWindow. -->
+             ShutdownMode="OnExplicitShutdown"
+             ThemeMode="System">
+    <!-- Tray-only-App: kein StartupUri, kein MainWindow.
+         ThemeMode=System aktiviert das Win11-Fluent-Theme inkl. Dark Mode —
+         das MUSS hier stehen, die gleichnamige csproj-Property tut nichts. -->
 </Application>

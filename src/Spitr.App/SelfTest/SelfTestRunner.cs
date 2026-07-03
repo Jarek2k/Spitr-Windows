@@ -148,6 +148,53 @@ internal static class SelfTestRunner
         Console.WriteLine($"[selftest] LastInsertedText: {controller.LastInsertedText ?? "null"}");
         Console.WriteLine($"[selftest] foreground(after)={stillForeground} keyboardFocus(after)={box.IsKeyboardFocused}");
 
+        // ── Zweites Diktat in DIESELBE TextBox: prüft das Smart Spacing über den
+        // echten UIA-Caret-Read (WPF-TextBox bietet TextPattern — derselbe
+        // Codepfad wie bei fremden Apps). Der Caret steht nach dem ersten Paste
+        // direkt hinter dem Satzende; die zweite Einfügung muss mit GENAU einem
+        // Leerzeichen anschließen. Die Fake-Audio-Capture liefert bei jedem
+        // Stop() denselben eingecheckten Buffer, also einfach nochmal „drücken".
+        var spacingOk = false;
+        if (pasted.Length > 0)
+        {
+            // Fokus/Foreground defensiv erneut erzwingen (CI-Desktops nehmen ihn
+            // gern zwischendurch weg) und den Caret ans Textende stellen.
+            global::Windows.Win32.PInvoke.SetForegroundWindow(hwnd);
+            box.Focus();
+            System.Windows.Input.Keyboard.Focus(box);
+            box.CaretIndex = box.Text.Length;
+            await Task.Delay(250);
+
+            Console.WriteLine("[selftest] zweites Diktat (Smart-Spacing-Check)…");
+            hotkey.RaisePressed(false);
+            await Task.Delay(100);
+            hotkey.RaiseReleased();
+
+            var spacingDeadline = DateTime.UtcNow + TimeSpan.FromSeconds(120);
+            while (box.Text.Length <= pasted.Length && DateTime.UtcNow < spacingDeadline)
+            {
+                if (controller.State == RecordingState.Error)
+                {
+                    Console.WriteLine($"[selftest] FAIL: Controller-Fehler beim zweiten Diktat: {controller.ErrorMessage}");
+                    return 1;
+                }
+                await Task.Delay(250);
+            }
+
+            var combined = box.Text;
+            Console.WriteLine($"[selftest] TextBox-Inhalt nach 2. Diktat ({combined.Length} Zeichen): {combined}");
+
+            // Naht prüfen: der erste Text endet getrimmt (ohne Whitespace), der
+            // zweite Einfüge-Text beginnt getrimmt — zwischen beiden muss also
+            // exakt ein Leerzeichen stehen: weder „…gabe.Dies"-Aneinanderkleben
+            // (Caret-Read lieferte null) noch ein Doppel-Leerzeichen.
+            var tail = combined.Length > pasted.Length ? combined[pasted.Length..] : "";
+            spacingOk = tail.Length > 1 && tail[0] == ' ' && !char.IsWhiteSpace(tail[1]);
+            Console.WriteLine(spacingOk
+                ? "[selftest] smart spacing: ok"
+                : $"[selftest] smart spacing: Naht falsch (tail beginnt mit: \"{(tail.Length == 0 ? "<leer>" : tail[..Math.Min(tail.Length, 6)])}\")");
+        }
+
         // Diag-Log auf die Konsole spülen (Adapter-Warnungen sichtbar machen).
         Spitr.Core.Diagnostics.DiagLog.Target = null;
         logStore.Dispose();
@@ -165,6 +212,11 @@ internal static class SelfTestRunner
             !pasted.Contains("Spitr"))
         {
             Console.WriteLine("[selftest] FAIL: Wörterbuch-Ersetzung nicht angewendet");
+            ok = false;
+        }
+        if (!spacingOk)
+        {
+            Console.WriteLine("[selftest] FAIL: Smart Spacing — genau ein Leerzeichen an der Naht erwartet");
             ok = false;
         }
 

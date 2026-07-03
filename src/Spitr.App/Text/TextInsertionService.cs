@@ -55,25 +55,30 @@ public sealed class TextInsertionService : Spitr.Core.Recording.ITextInsertionSe
     {
         if (string.IsNullOrEmpty(text)) return;
 
-        // Caret-Kontext (Zeichen vor dem Cursor) kommt erst mit UIA in Phase 6;
-        // bis dahin precedingCharacter=null → SmartSpacing fasst nur
-        // Leerzeichen-Läufe zusammen und stellt NIE ein führendes Leerzeichen voran.
-        var prepared = Spitr.Core.Text.SmartSpacing.Prepare(text, precedingCharacter: null, SmartSpacing);
-        if (prepared.Length == 0) return;
-
         if (ForegroundInfo.IsPasteBlockedByElevation())
         {
             // UIPI verwirft SendInput an erhöhte Fenster lautlos — gar nicht
             // erst versuchen. Text ohne Restore aufs Clipboard legen (der
             // Nutzer fügt manuell ein); concealed, damit das Diktat trotzdem
-            // nicht im Win+V-Verlauf oder der Cloud landet.
-            var copied = _clipboard.TrySetText(prepared, concealFromHistory: true);
-            Log.Notice($"foreground elevated, paste blocked (text: {prepared.Length} chars, clipboard={copied})");
+            // nicht im Win+V-Verlauf oder der Cloud landet. Ohne Caret-Kontext
+            // vorbereiten — UIA-Reads in erhöhte Fenster blockt UIPI ebenso.
+            var fallback = Spitr.Core.Text.SmartSpacing.Prepare(text, precedingCharacter: null, SmartSpacing);
+            if (fallback.Length == 0) return;
+            var copied = _clipboard.TrySetText(fallback, concealFromHistory: true);
+            Log.Notice($"foreground elevated, paste blocked (text: {fallback.Length} chars, clipboard={copied})");
             InsertBlockedByElevation?.Invoke(copied
                 ? "Das aktive Fenster läuft als Administrator — Text liegt in der Zwischenablage, bitte mit Strg+V einfügen."
                 : "Das aktive Fenster läuft als Administrator — Einfügen nicht möglich.");
             return;
         }
+
+        // Caret-Kontext (Zeichen vor dem Cursor) per UIA lesen — nur bei
+        // aktivem SmartSpacing und wie im macOS-Original VOR dem Anfassen von
+        // Clipboard/Fokus. Null (kein Text-Pattern, Timeout, Feldanfang)
+        // heißt: nicht raten, kein führendes Leerzeichen voranstellen.
+        char? precedingCharacter = SmartSpacing ? CaretContextReader.PrecedingCharacter() : null;
+        var prepared = Spitr.Core.Text.SmartSpacing.Prepare(text, precedingCharacter, SmartSpacing);
+        if (prepared.Length == 0) return;
 
         // Steht vom letzten Insert noch ein Restore aus (zwei Diktate < 300 ms
         // hintereinander), erst abschließen — sonst würde der neue Snapshot

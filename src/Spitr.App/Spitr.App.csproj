@@ -15,6 +15,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- UIA3-Client für den Caret-Kontext-Read des Smart Spacing. -->
+    <PackageReference Include="FlaUI.UIA3" />
     <PackageReference Include="H.NotifyIcon.Wpf" />
     <PackageReference Include="NAudio.Wasapi" />
     <PackageReference Include="NAudio.WinMM" />
