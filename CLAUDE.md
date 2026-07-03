@@ -17,10 +17,15 @@ ohne Abo, ohne Telemetrie.
   interaktiven Testen. Nie davon ausgehen, etwas „mal eben auf Windows ausprobieren" zu können.
 - .NET SDK liegt in `~/.dotnet` (nicht im PATH):
   `export DOTNET_ROOT="$HOME/.dotnet"; export PATH="$DOTNET_ROOT:$PATH"`
-- **Mac-lokal baubar/testbar:** nur `Spitr.Core` + `Spitr.Core.Tests`
+- **Mac-lokal testbar:** `Spitr.Core` + `Spitr.Core.Tests`
   (`dotnet test tests/Spitr.Core.Tests`). Der schnelle Innenloop — hier landet ALLE Logik.
-- **Windows-Verifikation:** ausschließlich über GitHub Actions (`gh run watch` / Artifacts).
-  `Spitr.App` (WPF) baut auf macOS NICHT — nie versuchen, es lokal zu bauen.
+- **Mac-lokal kompilierbar (aber nicht lauffähig):** auch `Spitr.App`/`Spitr.App.Tests` —
+  dank `EnableWindowsTargeting` baut `dotnet build src/Spitr.App` auf dem Mac. JEDE
+  Win32/XAML-Änderung vor dem Push lokal compile-checken; nur das *Ausführen* (App-Tests,
+  Selftest, Screenshots) passiert in der Windows-CI.
+- **Windows-Verifikation:** über GitHub Actions (`gh run watch` / Artifacts).
+- **CsWin32:** neue Win32-APIs kommen zentral in `src/Spitr.App/NativeMethods.txt` —
+  nie parallel von mehreren Agents editieren lassen (Konfliktgefahr).
 - Whisper läuft dank `Whisper.net.Runtime` (osx-arm64) auch lokal auf dem Mac —
   Engine-Änderungen immer lokal integrationstesten, bevor sie in CI gehen.
 

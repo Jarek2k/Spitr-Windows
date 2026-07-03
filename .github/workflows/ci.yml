@@ -46,6 +46,27 @@ jobs:
         run: dotnet build Spitr.slnx -c Release
       - name: Test Spitr.Core (Windows)
         run: dotnet test tests/Spitr.Core.Tests -c Release --no-build
+      - name: Test Spitr.App adapters
+        run: dotnet test tests/Spitr.App.Tests -c Release --no-build
+      - name: Publish self-contained exe
+        run: >
+          dotnet publish src/Spitr.App -c Release -r win-x64 --self-contained
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+          -o artifacts/publish
+      - name: Selftest E2E (echte Pipeline gegen das publizierte Exe)
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath "artifacts/publish/Spitr.exe" `
+            -ArgumentList '--selftest','tests/Spitr.Core.Tests/Fixtures/german_test.wav' `
+            -PassThru -Wait -NoNewWindow
+          Write-Host "selftest exit code: $($p.ExitCode)"
+          exit $p.ExitCode
+      - name: Upload publish artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: spitr-win-x64
+          path: artifacts/publish/
 
   # Privacy-Wächter: HttpClient & Co. sind ausschließlich in ModelDownloader erlaubt.
   no-network-audit:

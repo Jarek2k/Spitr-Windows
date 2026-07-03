@@ -1,0 +1,68 @@
+// CsWin32-Quelle: eine API pro Zeile; der Source-Generator erzeugt korrekte
+// Signaturen + Structs. Zentral gepflegt — Agents/Features ergänzen hier NICHT
+// parallel (Konfliktgefahr), fehlende APIs werden gesammelt nachgetragen.
+
+// Low-Level-Keyboard-Hook + Message-Loop (KeyboardHookService)
+SetWindowsHookEx
+UnhookWindowsHookEx
+CallNextHookEx
+GetMessage
+TranslateMessage
+DispatchMessage
+PostThreadMessage
+GetCurrentThreadId
+GetModuleHandle
+GetAsyncKeyState
+GetKeyState
+KBDLLHOOKSTRUCT
+WINDOWS_HOOK_ID
+WM_KEYDOWN
+WM_KEYUP
+WM_SYSKEYDOWN
+WM_SYSKEYUP
+WM_QUIT
+WM_HOTKEY
+
+// Re-Insert-Chord (RegisterHotKey auf dem Hook-Thread)
+RegisterHotKey
+UnregisterHotKey
+HOT_KEY_MODIFIERS
+
+// Paste-Synthese (InputSender)
+SendInput
+VIRTUAL_KEY
+
+// Clipboard (ClipboardService)
+OpenClipboard
+CloseClipboard
+EmptyClipboard
+SetClipboardData
+GetClipboardData
+EnumClipboardFormats
+RegisterClipboardFormat
+GetClipboardFormatName
+IsClipboardFormatAvailable
+GetClipboardSequenceNumber
+GlobalAlloc
+GlobalLock
+GlobalUnlock
+GlobalSize
+GlobalFree
+
+// Selftest: stdout an die aufrufende Konsole hängen (WinExe hat sonst keine)
+AttachConsole
+
+// Fokus-Fenster + Elevation-Check (ForegroundInfo)
+GetForegroundWindow
+GetWindowThreadProcessId
+OpenProcess
+OpenProcessToken
+GetTokenInformation
+CloseHandle
+
+// Overlay-Fensterstile (Phase 4)
+GetWindowLong
+SetWindowLong
+// WS_EX_NOACTIVATE/TRANSPARENT/TOOLWINDOW stecken als Member in diesem Enum
+// (Einzel-Konstanten lehnt CsWin32 mit PInvoke004 ab).
+WINDOW_EX_STYLE
