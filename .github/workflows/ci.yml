@@ -13,21 +13,35 @@ jobs:
   # Spiegelt den lokalen Mac-Innenloop: gesamte Core-Logik + Whisper-Integration.
   core-macos:
     runs-on: macos-15
+    env:
+      SPITR_TEST_MODEL_DIR: ${{ github.workspace }}/.model-cache
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
+      - name: Cache Whisper model
+        uses: actions/cache@v4
+        with:
+          path: .model-cache
+          key: ggml-base-v1
       - name: Test Spitr.Core
         run: dotnet test tests/Spitr.Core.Tests -c Release
 
   windows:
     runs-on: windows-latest
+    env:
+      SPITR_TEST_MODEL_DIR: ${{ github.workspace }}/.model-cache
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
+      - name: Cache Whisper model
+        uses: actions/cache@v4
+        with:
+          path: .model-cache
+          key: ggml-base-v1
       - name: Build solution
         run: dotnet build Spitr.slnx -c Release
       - name: Test Spitr.Core (Windows)
