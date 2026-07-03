@@ -99,7 +99,7 @@ public sealed class ModelDownloadViewModel : INotifyPropertyChanged
         Error = null;
         try
         {
-            // Downloader pro Vorgang: hält seinen HttpClient nur so lange wie nötig.
+            // Downloader pro Vorgang: hält seine Netzwerk-Verbindung nur so lange wie nötig.
             using var downloader = new ModelDownloader(_modelsDirectory);
             await downloader.DownloadAsync(model, _progressSink);
             Progress = 1;
