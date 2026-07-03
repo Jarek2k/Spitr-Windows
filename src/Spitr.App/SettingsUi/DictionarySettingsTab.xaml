@@ -1,0 +1,60 @@
+<UserControl x:Class="Spitr.App.SettingsUi.DictionarySettingsTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="SettingsStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <!-- „Wörterbuch": feste Ganz-Wort-Ersetzungen nach der Erkennung — Port von
+         DictionarySettingsView.swift, statt Inline-Editing eine Liste mit
+         Hinzufügen/Bearbeiten/Löschen über einen Dialog (robuster in WPF). -->
+    <Grid Margin="16,12,16,16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Style="{StaticResource Card}">
+            <CheckBox Content="Wörterbuch anwenden"
+                      IsChecked="{Binding Enabled}"
+                      AutomationProperties.AutomationId="Dictionary.EnabledToggle"/>
+        </Border>
+        <TextBlock Grid.Row="1" Style="{StaticResource Footnote}" Margin="2,6,2,10"
+                   Text="Feste Ersetzung nach der Erkennung — der harte Weg, wenn ein Wort über das Vokabular nicht zuverlässig ankommt. Ersetzt wird immer nur das ganze Wort; Groß-/Kleinschreibung spielt keine Rolle."/>
+
+        <Grid Grid.Row="2" x:Name="RulesArea">
+            <ListView x:Name="RulesList"
+                      SelectionMode="Single"
+                      SelectionChanged="OnRulesSelectionChanged"
+                      MouseDoubleClick="OnRulesDoubleClick"
+                      AutomationProperties.AutomationId="Dictionary.List">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Erkannt" Width="225" DisplayMemberBinding="{Binding Pattern}"/>
+                        <GridViewColumn Header="Ersetzung" Width="225" DisplayMemberBinding="{Binding Replacement}"/>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+            <!-- Leer-Zustand über der (leeren) Liste -->
+            <TextBlock x:Name="EmptyHint"
+                       Text="Noch keine Regeln. „Erkannt“ wird durch „Ersetzung“ getauscht."
+                       Opacity="0.65" HorizontalAlignment="Center" VerticalAlignment="Center"
+                       TextWrapping="Wrap" Margin="24" IsHitTestVisible="False"/>
+        </Grid>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,10,0,0">
+            <Button x:Name="AddButton" Content="Hinzufügen…" Click="OnAddClick" MinWidth="110"
+                    AutomationProperties.AutomationId="Dictionary.Add"/>
+            <Button x:Name="EditButton" Content="Bearbeiten…" Click="OnEditClick" MinWidth="110" Margin="8,0,0,0"
+                    IsEnabled="False" AutomationProperties.AutomationId="Dictionary.Edit"/>
+            <Button x:Name="DeleteButton" Content="Löschen" Click="OnDeleteClick" MinWidth="90" Margin="8,0,0,0"
+                    IsEnabled="False" AutomationProperties.AutomationId="Dictionary.Delete"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

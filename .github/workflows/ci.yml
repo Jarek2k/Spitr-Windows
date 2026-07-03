@@ -70,6 +70,13 @@ jobs:
             -ArgumentList '--screenshot-overlays','artifacts/screenshots' `
             -PassThru -Wait -NoNewWindow
           exit $p.ExitCode
+      - name: Settings/Onboarding screenshots
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath "artifacts/publish/Spitr.exe" `
+            -ArgumentList '--screenshot-ui','artifacts/screenshots' `
+            -PassThru -Wait -NoNewWindow
+          exit $p.ExitCode
       - name: Upload overlay screenshots
         uses: actions/upload-artifact@v4
         if: always()

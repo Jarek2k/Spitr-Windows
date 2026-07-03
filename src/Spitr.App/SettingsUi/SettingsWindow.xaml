@@ -1,0 +1,29 @@
+<Window x:Class="Spitr.App.SettingsUi.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Spitr – Einstellungen"
+        Width="560" Height="520"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        PreviewKeyDown="OnPreviewKeyDown">
+    <!-- Das Einstellungsfenster: 6 Tabs wie am Mac (SettingsView.swift). Die
+         Tab-Inhalte baut der Code-Behind mit Konstruktor-Injektion zusammen;
+         die Auswahl ist mit settings.RequestedTab synchronisiert, damit
+         Tray-Menü und Sprachbefehle gezielt einen Tab öffnen können. -->
+    <TabControl x:Name="Tabs" Margin="12"
+                SelectionChanged="OnTabsSelectionChanged"
+                AutomationProperties.AutomationId="Settings.Tabs">
+        <TabItem x:Name="GeneralTab" Header="Allgemein"
+                 AutomationProperties.AutomationId="Settings.Tab.General"/>
+        <TabItem x:Name="VocabularyTab" Header="Vokabular"
+                 AutomationProperties.AutomationId="Settings.Tab.Vocabulary"/>
+        <TabItem x:Name="DictionaryTab" Header="Wörterbuch"
+                 AutomationProperties.AutomationId="Settings.Tab.Dictionary"/>
+        <TabItem x:Name="CommandsTab" Header="Befehle"
+                 AutomationProperties.AutomationId="Settings.Tab.Commands"/>
+        <TabItem x:Name="HistoryTab" Header="Verlauf"
+                 AutomationProperties.AutomationId="Settings.Tab.History"/>
+        <TabItem x:Name="DiagnosticsTab" Header="Diagnose"
+                 AutomationProperties.AutomationId="Settings.Tab.Diagnostics"/>
+    </TabControl>
+</Window>

@@ -1,0 +1,167 @@
+<UserControl x:Class="Spitr.App.SettingsUi.GeneralSettingsTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="SettingsStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <!-- „Allgemein": Engine/Modell, Sprache, Aufnahme-Taste, Mikrofon,
+         Visualisierung, Töne, intelligente Leerzeichen, Re-Insert-Kürzel und
+         Autostart — Port von GeneralSettingsView.swift. -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="16,4,16,16">
+
+            <TextBlock Text="Erkennung" Style="{StaticResource SectionHeader}" Margin="2,8,0,6"/>
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Engine" Style="{StaticResource FormLabel}"/>
+                        <TextBlock x:Name="EngineLabel" Grid.Column="1" VerticalAlignment="Center"
+                                   AutomationProperties.AutomationId="General.EngineLabel"/>
+                    </Grid>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Modell" Style="{StaticResource FormLabel}"/>
+                        <ComboBox x:Name="ModelPicker" Grid.Column="1"
+                                  DisplayMemberPath="Label" SelectedValuePath="Value"
+                                  SelectedValue="{Binding WhisperModel}"
+                                  SelectionChanged="OnModelSelectionChanged"
+                                  AutomationProperties.AutomationId="General.ModelPicker"/>
+                    </Grid>
+                    <!-- Fortschritt eines laufenden Modell-Downloads (Code-Behind steuert Sichtbarkeit) -->
+                    <StackPanel x:Name="DownloadPanel" Visibility="Collapsed" Margin="150,0,0,10">
+                        <ProgressBar x:Name="DownloadProgress" Height="6" Minimum="0" Maximum="1"
+                                     AutomationProperties.AutomationId="General.ModelDownloadProgress"/>
+                        <TextBlock x:Name="DownloadStatus" Style="{StaticResource Footnote}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                    <TextBlock x:Name="DownloadError" Visibility="Collapsed" Margin="150,0,0,10"
+                               FontSize="12" TextWrapping="Wrap" Foreground="#E81123"
+                               AutomationProperties.AutomationId="General.ModelDownloadError"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Sprache" Style="{StaticResource FormLabel}"/>
+                        <ComboBox x:Name="LanguagePicker" Grid.Column="1"
+                                  DisplayMemberPath="Label" SelectedValuePath="Value"
+                                  SelectedValue="{Binding LocaleIdentifier}"
+                                  AutomationProperties.AutomationId="General.LanguagePicker"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+            <TextBlock Style="{StaticResource Footnote}"
+                       Text="Das Modell wird beim ersten Mal einmalig heruntergeladen; danach läuft alles offline."/>
+
+            <TextBlock Text="Aufnahme" Style="{StaticResource SectionHeader}"/>
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Aufnahme-Taste" Style="{StaticResource FormLabel}"/>
+                        <ComboBox x:Name="HoldKeyPicker" Grid.Column="1"
+                                  DisplayMemberPath="Label" SelectedValuePath="Value"
+                                  SelectedValue="{Binding HoldKey}"
+                                  AutomationProperties.AutomationId="General.HoldKeyPicker"/>
+                    </Grid>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Mikrofon" Style="{StaticResource FormLabel}"/>
+                        <ComboBox x:Name="MicrophonePicker" Grid.Column="1"
+                                  DisplayMemberPath="Label" SelectedValuePath="Value"
+                                  SelectedValue="{Binding InputDeviceId}"
+                                  AutomationProperties.AutomationId="General.MicrophonePicker"/>
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Visualisierung" Style="{StaticResource FormLabel}"/>
+                        <ComboBox x:Name="WaveformPicker" Grid.Column="1"
+                                  DisplayMemberPath="Label" SelectedValuePath="Value"
+                                  SelectedValue="{Binding WaveformStyle}"
+                                  AutomationProperties.AutomationId="General.WaveformPicker"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+            <TextBlock Style="{StaticResource Footnote}"
+                       Text="Aufgenommen wird nur, solange du die Taste hältst — eine Taste, die selbst nichts tippt. Alt Gr wird zum Tippen von @ € [ ] gebraucht und ist deshalb nicht wählbar."/>
+
+            <TextBlock Text="Töne" Style="{StaticResource SectionHeader}"/>
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <CheckBox Content="Ton bei Aufnahmebereitschaft" Margin="0,0,0,10"
+                              IsChecked="{Binding PlayReadyChime}"
+                              AutomationProperties.AutomationId="General.ReadyChimeToggle"/>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Ton-Stil" Style="{StaticResource FormLabel}"/>
+                        <ComboBox x:Name="ReadyChimeStylePicker" Grid.Column="1"
+                                  DisplayMemberPath="Label" SelectedValuePath="Value"
+                                  SelectedValue="{Binding ReadyChimeStyle}"
+                                  IsEnabled="{Binding PlayReadyChime}"
+                                  SelectionChanged="OnChimeStyleSelectionChanged"
+                                  AutomationProperties.AutomationId="General.ReadyChimeStylePicker"/>
+                    </Grid>
+                    <CheckBox Content="Ton bei Aufnahme-Ende"
+                              IsChecked="{Binding PlayDoneChime}"
+                              AutomationProperties.AutomationId="General.DoneChimeToggle"/>
+                </StackPanel>
+            </Border>
+            <TextBlock Style="{StaticResource Footnote}"
+                       Text="Kurze Töne, wenn das Mikro wirklich aufnimmt (Beginn) und wenn der Text eingefügt wurde (Ende) — so verlierst du das erste Wort nicht und weißt, wann die Umwandlung fertig ist. Den Stil hörst du beim Umschalten gleich probe."/>
+
+            <TextBlock Text="Text einfügen" Style="{StaticResource SectionHeader}"/>
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <CheckBox Content="Intelligente Leerzeichen" Margin="0,0,0,10"
+                              IsChecked="{Binding SmartSpacing}"
+                              AutomationProperties.AutomationId="General.SmartSpacingToggle"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Erneut einfügen" Style="{StaticResource FormLabel}"/>
+                        <TextBlock Grid.Column="1" VerticalAlignment="Center" FontFamily="Consolas"
+                                   Text="{Binding ReinsertShortcut.DisplayString, Mode=OneWay}"
+                                   AutomationProperties.AutomationId="General.ReinsertShortcutLabel"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+            <TextBlock Style="{StaticResource Footnote}"
+                       Text="Intelligente Leerzeichen fassen doppelte Leerzeichen zusammen und setzen automatisch ein Leerzeichen vor den Text, wenn er sonst am vorigen Wort klebt. Der globale Kurzbefehl „Erneut einfügen“ fügt die letzte Spracheingabe noch einmal ins fokussierte Feld ein — Standard: Strg+Alt+Umschalt+V. Das Kürzel lässt sich hier bald ändern."/>
+
+            <TextBlock Text="System" Style="{StaticResource SectionHeader}"/>
+            <Border Style="{StaticResource Card}">
+                <CheckBox x:Name="StartupToggle" Content="Beim Anmelden starten"
+                          Click="OnStartupToggleClick"
+                          AutomationProperties.AutomationId="General.StartupToggle"/>
+            </Border>
+            <TextBlock Style="{StaticResource Footnote}"
+                       Text="Startet Spitr automatisch mit Windows (Eintrag im Autostart, sichtbar im Task-Manager)."/>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

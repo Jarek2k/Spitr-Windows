@@ -1,0 +1,175 @@
+<Window x:Class="Spitr.App.Onboarding.OnboardingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Spitr einrichten"
+        Width="520" Height="560"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        PreviewKeyDown="OnWindowKeyDown"
+        AutomationProperties.AutomationId="Onboarding.Window">
+    <!-- Erststart-Assistent — Pendant zu OnboardingView.swift. Windows braucht
+         keine Berechtigungen, deshalb erklären die drei Schritte stattdessen
+         die Bedienung, prüfen das Mikrofon und laden das Whisper-Modell.
+         Navigation über Weiter/Zurück; Esc schließt (Onboarding gilt dann als
+         nicht abgeschlossen und erscheint beim nächsten Start erneut). -->
+    <Grid Margin="28,20,28,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Kopfzeile: Schritt-Zähler links, Fortschritts-Punkte rechts. -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock x:Name="StepCounter" DockPanel.Dock="Left" FontSize="12" Opacity="0.7"
+                       VerticalAlignment="Center"
+                       AutomationProperties.AutomationId="Onboarding.StepCounter"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center"
+                        AutomationProperties.AutomationId="Onboarding.Dots">
+                <Ellipse x:Name="Dot1" Width="8" Height="8" Margin="4,0"
+                         AutomationProperties.AutomationId="Onboarding.Dot1"/>
+                <Ellipse x:Name="Dot2" Width="8" Height="8" Margin="4,0"
+                         AutomationProperties.AutomationId="Onboarding.Dot2"/>
+                <Ellipse x:Name="Dot3" Width="8" Height="8" Margin="4,0"
+                         AutomationProperties.AutomationId="Onboarding.Dot3"/>
+            </StackPanel>
+        </DockPanel>
+
+        <!-- Schritt 1 — Bedienung: Hold-to-Talk erklären + Taste wählen. -->
+        <StackPanel x:Name="Step1Panel" Grid.Row="1"
+                    AutomationProperties.AutomationId="Onboarding.Step1.Panel">
+            <TextBlock Text="1 · Bedienung" FontSize="24" FontWeight="SemiBold"
+                       AutomationProperties.AutomationId="Onboarding.Step1.Title"/>
+            <!-- Text wird im Code-Behind gesetzt, damit er der gewählten Taste folgt. -->
+            <TextBlock x:Name="Step1Instruction" Margin="0,12,0,0" TextWrapping="Wrap" FontSize="14"
+                       AutomationProperties.AutomationId="Onboarding.Step1.Instruction"/>
+            <Grid Margin="0,20,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Aufnahme-Taste:" VerticalAlignment="Center"
+                           AutomationProperties.AutomationId="Onboarding.Step1.KeyLabel"/>
+                <ComboBox x:Name="KeyPicker" Grid.Column="2" HorizontalAlignment="Left" MinWidth="180"
+                          AutomationProperties.AutomationId="Onboarding.Step1.KeyPicker"/>
+            </Grid>
+            <TextBlock Margin="0,8,0,0" TextWrapping="Wrap" FontSize="12" Opacity="0.7"
+                       Text="Rechts-Alt wird bewusst nicht angeboten: Auf deutschen Tastaturen ist das AltGr und wird zum Tippen von @ € [ ] gebraucht."
+                       AutomationProperties.AutomationId="Onboarding.Step1.KeyFootnote"/>
+            <!-- Privacy-Absatz wie im macOS-Onboarding. -->
+            <Border Margin="0,24,0,0" Padding="14,12" CornerRadius="8" Background="#15808080">
+                <TextBlock TextWrapping="Wrap" FontSize="12"
+                           Text="Privat by Design: Das Mikrofon nimmt nur auf, solange du die Taste hältst — kein Dauer-Mithören. Die Erkennung läuft vollständig on-device; nichts verlässt deinen Rechner, keine Cloud, keine Telemetrie."
+                           AutomationProperties.AutomationId="Onboarding.Step1.Privacy"/>
+            </Border>
+        </StackPanel>
+
+        <!-- Schritt 2 — Mikrofon-Check: 1,5-s-Pegeltest, überspringbar. -->
+        <StackPanel x:Name="Step2Panel" Grid.Row="1" Visibility="Collapsed"
+                    AutomationProperties.AutomationId="Onboarding.Step2.Panel">
+            <TextBlock Text="2 · Mikrofon-Check" FontSize="24" FontWeight="SemiBold"
+                       AutomationProperties.AutomationId="Onboarding.Step2.Title"/>
+            <TextBlock Margin="0,12,0,0" TextWrapping="Wrap" FontSize="14"
+                       Text="Ein kurzer Pegeltest nimmt 1,5 Sekunden auf und prüft, ob dein Mikrofon Signal liefert. Sprich währenddessen einfach kurz hinein."
+                       AutomationProperties.AutomationId="Onboarding.Step2.Detail"/>
+            <Button x:Name="MicTestButton" Margin="0,16,0,0" HorizontalAlignment="Left"
+                    Content="Pegel testen" Click="OnMicTestClick"
+                    AutomationProperties.AutomationId="Onboarding.Step2.TestButton"/>
+            <!-- Live-Pegel während des Tests (normalisiert 0…1 aus dem AdaptiveLevelMeter). -->
+            <ProgressBar x:Name="LevelBar" Margin="0,14,0,0" Height="8" Minimum="0" Maximum="1"
+                         AutomationProperties.AutomationId="Onboarding.Step2.LevelBar"/>
+            <Grid x:Name="MicResultPanel" Margin="0,14,0,0" Visibility="Collapsed"
+                  AutomationProperties.AutomationId="Onboarding.Step2.ResultPanel">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="MicResultIcon" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                           VerticalAlignment="Top" Margin="0,2,0,0"
+                           AutomationProperties.AutomationId="Onboarding.Step2.ResultIcon"/>
+                <TextBlock x:Name="MicResultText" Grid.Column="2" TextWrapping="Wrap"
+                           AutomationProperties.AutomationId="Onboarding.Step2.ResultText"/>
+            </Grid>
+            <!-- Hilfe bei fehlendem Signal/Fehler: Windows-Datenschutzseite öffnen. -->
+            <StackPanel x:Name="MicHelpPanel" Margin="0,10,0,0" Visibility="Collapsed"
+                        AutomationProperties.AutomationId="Onboarding.Step2.HelpPanel">
+                <Button x:Name="OpenMicSettingsButton" HorizontalAlignment="Left"
+                        Content="Windows-Mikrofon-Einstellungen öffnen" Click="OnOpenMicSettingsClick"
+                        AutomationProperties.AutomationId="Onboarding.Step2.OpenSettingsButton"/>
+                <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" FontSize="12" Opacity="0.7"
+                           Text="Windows-Einstellung: „Desktop-Apps den Zugriff auf das Mikrofon erlauben“ muss aktiviert sein."
+                           AutomationProperties.AutomationId="Onboarding.Step2.SettingsHint"/>
+            </StackPanel>
+            <TextBlock Margin="0,20,0,0" TextWrapping="Wrap" FontSize="12" Opacity="0.7"
+                       Text="Kein Mikrofon zur Hand? Diesen Schritt kannst du überspringen — einfach auf „Weiter“ klicken."
+                       AutomationProperties.AutomationId="Onboarding.Step2.SkipHint"/>
+        </StackPanel>
+
+        <!-- Schritt 3 — Spracherkennungs-Modell: wählen + einmalig herunterladen. -->
+        <StackPanel x:Name="Step3Panel" Grid.Row="1" Visibility="Collapsed"
+                    AutomationProperties.AutomationId="Onboarding.Step3.Panel">
+            <TextBlock Text="3 · Spracherkennungs-Modell" FontSize="24" FontWeight="SemiBold"
+                       AutomationProperties.AutomationId="Onboarding.Step3.Title"/>
+            <TextBlock Margin="0,12,0,0" TextWrapping="Wrap" FontSize="14"
+                       Text="Spitr wandelt Sprache mit einem Whisper-Modell in Text um. Das Modell wird einmalig heruntergeladen — danach läuft die Erkennung komplett offline."
+                       AutomationProperties.AutomationId="Onboarding.Step3.Detail"/>
+            <Grid Margin="0,20,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Modell:" VerticalAlignment="Center"
+                           AutomationProperties.AutomationId="Onboarding.Step3.ModelLabel"/>
+                <ComboBox x:Name="ModelPicker" Grid.Column="2" HorizontalAlignment="Left" MinWidth="280"
+                          AutomationProperties.AutomationId="Onboarding.Step3.ModelPicker"/>
+            </Grid>
+            <Grid Margin="0,14,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button x:Name="DownloadButton" Content="Herunterladen" Click="OnDownloadClick"
+                        AutomationProperties.AutomationId="Onboarding.Step3.DownloadButton"/>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock x:Name="ModelStatusIcon" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                               Text="&#xE73E;" Foreground="#2EA043" Margin="0,0,6,0"
+                               VerticalAlignment="Center" Visibility="Collapsed"
+                               AutomationProperties.AutomationId="Onboarding.Step3.StatusIcon"/>
+                    <TextBlock x:Name="ModelStatusText" VerticalAlignment="Center" TextWrapping="Wrap"
+                               AutomationProperties.AutomationId="Onboarding.Step3.StatusText"/>
+                </StackPanel>
+            </Grid>
+            <ProgressBar x:Name="DownloadProgress" Margin="0,12,0,0" Height="8" Minimum="0" Maximum="1"
+                         Visibility="Collapsed"
+                         AutomationProperties.AutomationId="Onboarding.Step3.DownloadProgress"/>
+            <TextBlock x:Name="DownloadErrorText" Margin="0,10,0,0" TextWrapping="Wrap" FontSize="12"
+                       Foreground="#C85A1E" Visibility="Collapsed"
+                       AutomationProperties.AutomationId="Onboarding.Step3.ErrorText"/>
+            <CheckBox x:Name="DownloadLaterCheck" Margin="0,16,0,0" Content="Modell später herunterladen"
+                      Checked="OnDownloadLaterToggled" Unchecked="OnDownloadLaterToggled"
+                      AutomationProperties.AutomationId="Onboarding.Step3.DownloadLaterCheck"/>
+            <Border Margin="0,20,0,0" Padding="14,12" CornerRadius="8" Background="#15808080">
+                <TextBlock TextWrapping="Wrap" FontSize="12"
+                           Text="Dieser Download ist die einzige Netzwerkverbindung von Spitr — kein Update-Check, keine Telemetrie. Danach arbeitet die App vollständig offline."
+                           AutomationProperties.AutomationId="Onboarding.Step3.Privacy"/>
+            </Border>
+        </StackPanel>
+
+        <!-- Navigation: Zurück links, Weiter/Fertig rechts. -->
+        <Grid Grid.Row="2" Margin="0,16,0,0">
+            <Button x:Name="BackButton" Content="Zurück" MinWidth="90" HorizontalAlignment="Left"
+                    Click="OnBackClick" AutomationProperties.AutomationId="Onboarding.BackButton"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="NextButton" Content="Weiter" MinWidth="90" Click="OnNextClick"
+                        AutomationProperties.AutomationId="Onboarding.NextButton"/>
+                <Button x:Name="FinishButton" Content="Fertig" MinWidth="90" Click="OnFinishClick"
+                        Visibility="Collapsed"
+                        AutomationProperties.AutomationId="Onboarding.FinishButton"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

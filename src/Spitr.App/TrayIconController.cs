@@ -18,10 +18,15 @@ public sealed class TrayIconController : IDisposable
     private readonly RecordingController _controller;
     private readonly Dictionary<TrayState, Icon> _icons = [];
     private readonly MenuItem _statusItem = new() { IsEnabled = false };
+    private readonly MenuItem _engineItem = new() { IsEnabled = false };
     private readonly MenuItem _pauseItem = new();
     private readonly MenuItem _reinsertItem = new();
+    private readonly MenuItem _correctItem = new();
 
     public event Action? QuitRequested;
+    public event Action? OpenSettingsRequested;
+    public event Action? OpenOnboardingRequested;
+    public event Action? CorrectLastRequested;
 
     public TrayIconController(RecordingController controller)
     {
@@ -29,14 +34,24 @@ public sealed class TrayIconController : IDisposable
 
         _pauseItem.Click += (_, _) => _controller.TogglePause();
         _reinsertItem.Click += (_, _) => _controller.ReinsertLast();
+        _correctItem.Click += (_, _) => CorrectLastRequested?.Invoke();
+        var settingsItem = new MenuItem { Header = "Einstellungen…" };
+        settingsItem.Click += (_, _) => OpenSettingsRequested?.Invoke();
+        var onboardingItem = new MenuItem { Header = "Einrichtung…" };
+        onboardingItem.Click += (_, _) => OpenOnboardingRequested?.Invoke();
         var quitItem = new MenuItem { Header = "Spitr beenden" };
         quitItem.Click += (_, _) => QuitRequested?.Invoke();
 
         var menu = new ContextMenu();
         menu.Items.Add(_statusItem);
+        menu.Items.Add(_engineItem);
         menu.Items.Add(new Separator());
         menu.Items.Add(_pauseItem);
         menu.Items.Add(_reinsertItem);
+        menu.Items.Add(_correctItem);
+        menu.Items.Add(new Separator());
+        menu.Items.Add(settingsItem);
+        menu.Items.Add(onboardingItem);
         menu.Items.Add(new Separator());
         menu.Items.Add(quitItem);
 
@@ -63,9 +78,12 @@ public sealed class TrayIconController : IDisposable
         _icon.Icon = IconFor(state);
         _icon.ToolTipText = $"Spitr — {_controller.StatusText}";
         _statusItem.Header = _controller.StatusText;
+        _engineItem.Header = $"Engine: {_controller.ActiveEngineLabel}";
         _pauseItem.Header = _controller.Paused ? "Fortsetzen" : "Pausieren";
         _reinsertItem.Header = "Letzte Spracheingabe erneut einfügen";
         _reinsertItem.IsEnabled = _controller.LastInsertedText is not null;
+        _correctItem.Header = "Letzte Spracheingabe korrigieren…";
+        _correctItem.IsEnabled = _controller.CanCorrectHistory;
     }
 
     /// <summary>

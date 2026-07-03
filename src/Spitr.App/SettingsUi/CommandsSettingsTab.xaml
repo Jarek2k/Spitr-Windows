@@ -1,0 +1,46 @@
+<UserControl x:Class="Spitr.App.SettingsUi.CommandsSettingsTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="SettingsStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <!-- „Befehle": Read-only-Referenz der Sprachbefehle des Befehlsmodus —
+         Port von CommandsSettingsView.swift. -->
+    <Grid Margin="16,12,16,16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Sprachbefehle" Style="{StaticResource SectionHeader}" Margin="2,0,0,6"/>
+
+        <Border Grid.Row="1" Style="{StaticResource Card}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl x:Name="CommandsList" AutomationProperties.AutomationId="Commands.List">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding Title}" VerticalAlignment="Center"
+                                           TextWrapping="Wrap" Margin="0,0,12,0"/>
+                                <TextBlock Grid.Column="1" Text="{Binding Example}" VerticalAlignment="Center"
+                                           FontFamily="Consolas" Opacity="0.65"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+
+        <TextBlock x:Name="Footnote" Grid.Row="2" Style="{StaticResource Footnote}"/>
+    </Grid>
+</UserControl>

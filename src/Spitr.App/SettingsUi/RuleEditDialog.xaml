@@ -1,0 +1,36 @@
+<Window x:Class="Spitr.App.SettingsUi.RuleEditDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Width="380" SizeToContent="Height"
+        ResizeMode="NoResize" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+    <!-- Editor für eine Wörterbuch-Regel: „Erkannt" → „Ersetzung". -->
+    <StackPanel Margin="16">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="110"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Text="Erkannt" VerticalAlignment="Center" Margin="0,0,10,10" Opacity="0.8"/>
+            <TextBox x:Name="PatternBox" Grid.Column="1" Margin="0,0,0,10"
+                     TextChanged="OnTextChanged"
+                     AutomationProperties.AutomationId="RuleDialog.Pattern"/>
+            <TextBlock Text="Ersetzung" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,10,0" Opacity="0.8"/>
+            <TextBox x:Name="ReplacementBox" Grid.Row="1" Grid.Column="1"
+                     AutomationProperties.AutomationId="RuleDialog.Replacement"/>
+        </Grid>
+        <TextBlock Margin="0,10,0,0" FontSize="12" Opacity="0.65" TextWrapping="Wrap"
+                   Text="Beispiel: „Klode“ → „Claude“. Die Regel ersetzt jedes ganze Wort, unabhängig von Groß-/Kleinschreibung."/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="Abbrechen" IsCancel="True" MinWidth="90"
+                    AutomationProperties.AutomationId="RuleDialog.Cancel"/>
+            <Button x:Name="SaveButton" Content="Sichern" IsDefault="True" MinWidth="90" Margin="8,0,0,0"
+                    Click="OnSaveClick" IsEnabled="False"
+                    AutomationProperties.AutomationId="RuleDialog.Save"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

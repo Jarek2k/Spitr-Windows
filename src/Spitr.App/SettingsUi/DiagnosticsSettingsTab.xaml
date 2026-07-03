@@ -1,0 +1,40 @@
+<UserControl x:Class="Spitr.App.SettingsUi.DiagnosticsSettingsTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="SettingsStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <!-- „Diagnose": Verbose-Logging-Schalter + Log-Ordner öffnen — Port von
+         DiagnosticsSettingsView.swift. -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="16,12,16,16">
+
+            <Border Style="{StaticResource Card}">
+                <CheckBox Content="Ausführliches Protokoll"
+                          IsChecked="{Binding VerboseLogging}"
+                          AutomationProperties.AutomationId="Diagnostics.VerboseToggle"/>
+            </Border>
+            <TextBlock Style="{StaticResource Footnote}"
+                       Text="Schreibt nur zur Fehlersuche etwa alle 5 Minuten zusätzlich Speicher- und Thread-Werte ins Protokoll — nützlich, um über mehrere Tage Lecks aufzuspüren, kostet aber etwas Last. Aus reicht das normale Protokoll mit Ereignissen, Zeiten und Fehlern."/>
+
+            <TextBlock Text="Protokoll" Style="{StaticResource SectionHeader}"/>
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock x:Name="LogPathLabel" TextWrapping="Wrap" Margin="0,0,0,10"
+                               AutomationProperties.AutomationId="Diagnostics.LogPath"/>
+                    <Button Content="Ordner öffnen" HorizontalAlignment="Left" MinWidth="120"
+                            Click="OnOpenLogFolderClick"
+                            AutomationProperties.AutomationId="Diagnostics.OpenLogFolder"/>
+                </StackPanel>
+            </Border>
+            <TextBlock Style="{StaticResource Footnote}"
+                       Text="Das Protokoll enthält nie diktierten Text — nur Ereignisse, Zeiten und Fehler. Es bleibt komplett auf deinem PC."/>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

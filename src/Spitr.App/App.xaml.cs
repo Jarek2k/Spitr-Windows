@@ -59,6 +59,16 @@ public partial class App : Application
             return;
         }
 
+        if (e.Args.Length >= 1 && e.Args[0] == "--screenshot-ui")
+        {
+            global::Windows.Win32.PInvoke.AttachConsole(unchecked((uint)-1));
+            var outDir = e.Args.Length > 1
+                ? e.Args[1]
+                : Path.Combine(AppContext.BaseDirectory, "ui-screenshots");
+            _ = RunUiScreenshotsAsync(outDir);
+            return;
+        }
+
         _singleInstance = new Mutex(initiallyOwned: true, "Spitr-SingleInstance", out var isFirst);
         if (!isFirst)
         {
@@ -97,14 +107,50 @@ public partial class App : Application
             new TextReplacementService(),
             (_, model) => new WhisperEngine(modelsDirectory, model));
 
+        var audioDevices = new AudioDeviceService();
+        void OpenSettings() => SettingsUi.SettingsWindowHost.ShowOrFocus(() =>
+            new SettingsUi.SettingsWindow(_settings, history, dictionary, _controller!, audioDevices, modelsDirectory));
+
         _tray = new TrayIconController(_controller);
         _tray.QuitRequested += () => Shutdown();
+        _tray.OpenSettingsRequested += OpenSettings;
+        _tray.OpenOnboardingRequested += () =>
+            new Onboarding.OnboardingWindow(_settings, modelsDirectory).Show();
+        _tray.CorrectLastRequested += () =>
+        {
+            // Setzt RequestedTab=Verlauf + PendingCorrectionId; das Settings-
+            // Fenster konsumiert beides und öffnet den Korrektur-Dialog.
+            _controller.BeginCorrectLastDictation();
+            OpenSettings();
+        };
         _overlay = new Overlay.OverlayController(_controller, _settings);
         _insertion.InsertBlockedByElevation += message =>
             Current.Dispatcher.BeginInvoke(() => _tray?.ShowNotification("Spitr", message));
 
         _controller.Activate();
+
+        // Erststart: Einrichtung zeigen (Bedienung, Mikro-Check, Modell-Download).
+        if (!_settings.HasCompletedOnboarding)
+        {
+            new Onboarding.OnboardingWindow(_settings, modelsDirectory).Show();
+        }
+
         new DiagLog("app").Info("app started");
+    }
+
+    private async Task RunUiScreenshotsAsync(string outputDirectory)
+    {
+        int exitCode;
+        try
+        {
+            exitCode = await SettingsUi.UiScreenshotter.RunAsync(outputDirectory);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[screenshot-ui] FAIL: {ex}");
+            exitCode = 1;
+        }
+        Shutdown(exitCode);
     }
 
     private async Task RunOverlayScreenshotsAsync(string outputDirectory)
