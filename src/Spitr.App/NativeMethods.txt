@@ -52,8 +52,10 @@ GlobalFree
 // Selftest: stdout an die aufrufende Konsole hängen (WinExe hat sonst keine)
 AttachConsole
 
-// Fokus-Fenster + Elevation-Check (ForegroundInfo)
+// Fokus-Fenster + Elevation-Check (ForegroundInfo); SetForegroundWindow
+// braucht der Selftest, um sein Paste-Zielfenster in der CI nach vorn zu holen
 GetForegroundWindow
+SetForegroundWindow
 GetWindowThreadProcessId
 OpenProcess
 OpenProcessToken

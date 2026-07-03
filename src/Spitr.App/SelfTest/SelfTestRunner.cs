@@ -90,7 +90,25 @@ internal static class SelfTestRunner
         };
         window.Show();
         window.Activate();
+
+        // CI-Desktops geben Foreground nicht immer freiwillig her — explizit
+        // nach vorn zwingen und den Tastaturfokus auf die Box setzen.
+        var hwnd = new System.Windows.Interop.WindowInteropHelper(window).Handle;
+        global::Windows.Win32.PInvoke.SetForegroundWindow((global::Windows.Win32.Foundation.HWND)hwnd);
         box.Focus();
+        System.Windows.Input.Keyboard.Focus(box);
+        await Task.Delay(500);
+        Console.WriteLine($"[selftest] foreground={global::Windows.Win32.PInvoke.GetForegroundWindow() == (global::Windows.Win32.Foundation.HWND)hwnd} keyboardFocus={box.IsKeyboardFocused}");
+
+        // Zustandsübergänge sichtbar machen — bei einem Fehlschlag ist im
+        // CI-Log sonst nicht unterscheidbar, ob Transkription oder Paste hakt.
+        controller.PropertyChanged += (_, ev) =>
+        {
+            if (ev.PropertyName is nameof(RecordingController.State) or nameof(RecordingController.LastInsertedText))
+            {
+                Console.WriteLine($"[selftest] {ev.PropertyName}: state={controller.State} lastInserted={controller.LastInsertedText?.Length.ToString() ?? "null"}");
+            }
+        };
 
         controller.Activate();
         Console.WriteLine("[selftest] Engine wird vorbereitet, Diktat startet…");
@@ -100,7 +118,7 @@ internal static class SelfTestRunner
         hotkey.RaiseReleased();
 
         // Modell-Load + Transkription auf CI-CPUs kann dauern — großzügig warten.
-        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(180);
+        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(120);
         while (box.Text.Length == 0 && DateTime.UtcNow < deadline)
         {
             if (controller.State == RecordingState.Error)
@@ -113,6 +131,7 @@ internal static class SelfTestRunner
 
         var pasted = box.Text;
         Console.WriteLine($"[selftest] TextBox-Inhalt ({pasted.Length} Zeichen): {pasted}");
+        Console.WriteLine($"[selftest] LastInsertedText: {controller.LastInsertedText ?? "null"}");
 
         var letters = new string(pasted.ToLowerInvariant().Where(char.IsLetter).ToArray());
         var ok = letters.Contains("test") && letters.Contains("spracheingabe");
