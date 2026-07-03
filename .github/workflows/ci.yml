@@ -48,10 +48,12 @@ jobs:
         run: dotnet test tests/Spitr.Core.Tests -c Release --no-build
       - name: Test Spitr.App adapters
         run: dotnet test tests/Spitr.App.Tests -c Release --no-build
-      - name: Publish self-contained exe
+      # Folder-Publish statt Single-File: Whisper.nets nativer Loader findet
+      # seine DLLs im Self-Extract-Bundle nicht (runtimes/-Probing schlägt fehl).
+      # Single-File ist ein Härtungsthema für Phase 6.
+      - name: Publish self-contained app
         run: >
           dotnet publish src/Spitr.App -c Release -r win-x64 --self-contained
-          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
           -o artifacts/publish
       - name: Selftest E2E (echte Pipeline gegen das publizierte Exe)
         shell: pwsh
