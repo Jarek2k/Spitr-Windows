@@ -37,6 +37,13 @@ internal static class SelfTestRunner
         var tempDir = Path.Combine(Path.GetTempPath(), "spitr-selftest-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tempDir);
 
+        // Diag-Log mitschreiben und am Ende auf die Konsole kippen — sonst sind
+        // Clipboard-/SendInput-Warnungen der Adapter in der CI unsichtbar.
+        var logDir = Path.Combine(tempDir, "logs");
+        var logStore = new Spitr.Core.Diagnostics.LogStore(logDir);
+        logStore.Start(verbose: false);
+        Spitr.Core.Diagnostics.DiagLog.Target = logStore;
+
         var modelsDir = Environment.GetEnvironmentVariable("SPITR_TEST_MODEL_DIR")
                         ?? Path.Combine(App.LocalDataDirectory, "models");
         var model = WhisperModelCatalog.SelectableModels.Single(m => m.Id == "base");
@@ -80,6 +87,10 @@ internal static class SelfTestRunner
             Margin = new Thickness(8),
         };
         AutomationProperties.SetAutomationId(box, "SelftestTextBox");
+        // Jeden ankommenden Tastendruck protokollieren: unterscheidet „SendInput
+        // kommt gar nicht an" (kein Event) von „kommt an, aber Paste greift nicht".
+        box.PreviewKeyDown += (_, keyArgs) =>
+            Console.WriteLine($"[selftest] key received: {keyArgs.Key} (mods={System.Windows.Input.Keyboard.Modifiers})");
         var window = new Window
         {
             Title = "Spitr Selftest",
@@ -132,8 +143,19 @@ internal static class SelfTestRunner
         }
 
         var pasted = box.Text;
+        var stillForeground = global::Windows.Win32.PInvoke.GetForegroundWindow() == hwnd;
         Console.WriteLine($"[selftest] TextBox-Inhalt ({pasted.Length} Zeichen): {pasted}");
         Console.WriteLine($"[selftest] LastInsertedText: {controller.LastInsertedText ?? "null"}");
+        Console.WriteLine($"[selftest] foreground(after)={stillForeground} keyboardFocus(after)={box.IsKeyboardFocused}");
+
+        // Diag-Log auf die Konsole spülen (Adapter-Warnungen sichtbar machen).
+        Spitr.Core.Diagnostics.DiagLog.Target = null;
+        logStore.Dispose();
+        foreach (var logFile in Directory.GetFiles(logDir))
+        {
+            Console.WriteLine($"[selftest] --- {Path.GetFileName(logFile)} ---");
+            foreach (var line in File.ReadAllLines(logFile)) Console.WriteLine($"[selftest] {line}");
+        }
 
         var letters = new string(pasted.ToLowerInvariant().Where(char.IsLetter).ToArray());
         var ok = letters.Contains("test") && letters.Contains("spracheingabe");
