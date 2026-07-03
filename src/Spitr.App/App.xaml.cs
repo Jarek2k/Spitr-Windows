@@ -1,6 +1,7 @@
 using System.IO;
 using System.Windows;
 using Spitr.App.Audio;
+using Spitr.App.Overlay;
 using Spitr.App.SelfTest;
 using Spitr.App.Win32;
 using Spitr.Core.Diagnostics;
@@ -26,6 +27,7 @@ public partial class App : Application
     private Text.TextInsertionService? _insertion;
     private RecordingController? _controller;
     private TrayIconController? _tray;
+    private Overlay.OverlayController? _overlay;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -42,6 +44,18 @@ public partial class App : Application
                 ? e.Args[1]
                 : Path.Combine(AppContext.BaseDirectory, "german_test.wav");
             _ = RunSelfTestAsync(wav);
+            return;
+        }
+
+        if (e.Args.Length >= 1 && e.Args[0] == "--screenshot-overlays")
+        {
+            // Wie --selftest: Konsole anhängen, damit die CI die
+            // [screenshot]-Zeilen sieht.
+            global::Windows.Win32.PInvoke.AttachConsole(unchecked((uint)-1));
+            var outDir = e.Args.Length > 1
+                ? e.Args[1]
+                : Path.Combine(AppContext.BaseDirectory, "overlay-screenshots");
+            _ = RunOverlayScreenshotsAsync(outDir);
             return;
         }
 
@@ -85,11 +99,27 @@ public partial class App : Application
 
         _tray = new TrayIconController(_controller);
         _tray.QuitRequested += () => Shutdown();
+        _overlay = new Overlay.OverlayController(_controller, _settings);
         _insertion.InsertBlockedByElevation += message =>
             Current.Dispatcher.BeginInvoke(() => _tray?.ShowNotification("Spitr", message));
 
         _controller.Activate();
         new DiagLog("app").Info("app started");
+    }
+
+    private async Task RunOverlayScreenshotsAsync(string outputDirectory)
+    {
+        int exitCode;
+        try
+        {
+            exitCode = await OverlayScreenshotter.RunAsync(outputDirectory);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[screenshot] FAIL: {ex}");
+            exitCode = 1;
+        }
+        Shutdown(exitCode);
     }
 
     private async Task RunSelfTestAsync(string wavPath)
@@ -112,6 +142,7 @@ public partial class App : Application
         // Letzte Chance: eine noch ausstehende Clipboard-Wiederherstellung
         // synchron ausführen (Pendant zum willTerminate-Restore am Mac).
         _insertion?.FlushPendingRestore();
+        _overlay?.Dispose();
         _tray?.Dispose();
         _controller?.Dispose();
         _hotkey?.Dispose();

@@ -1,0 +1,58 @@
+<Window x:Class="Spitr.App.Overlay.OverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:overlay="clr-namespace:Spitr.App.Overlay"
+        Title="Spitr Overlay"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        ResizeMode="NoResize"
+        Focusable="False"
+        IsHitTestVisible="False"
+        Width="240" Height="64">
+    <!-- Aufnahme-Overlay: schwebt unten-mittig, klick-durchlässig, stiehlt nie
+         den Fokus. Entweder Kapsel (Glyphe + Waveform bzw. Befehls-Feedback)
+         oder eine randlose Waveform — Port von RecordingOverlay.swift. -->
+    <Grid x:Name="Root">
+        <!-- Kapsel-Präsentation: Signal-/Bars-Diktat, Befehlsmodus, Befehls-Feedback.
+             Hintergrund Schwarz 78 %, Hairline-Stroke Weiß 12 % als Overlay
+             (eigener Border, damit der Strich den Inhalt nicht einrückt). -->
+        <Grid x:Name="CapsuleChrome">
+            <Border Background="#C7000000" CornerRadius="32"/>
+            <Border BorderBrush="#1FFFFFFF" BorderThickness="1" CornerRadius="32"/>
+            <Grid Margin="18,12">
+                <!-- Aufnahme: Modus-Glyphe + audio-reaktive Waveform. -->
+                <Grid x:Name="RecordingContent">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="ModeGlyph" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <overlay:WaveformRenderer x:Name="CapsuleWaveform" Grid.Column="2"/>
+                </Grid>
+                <!-- Befehls-Ergebnis: Status-Glyphe (Kreis + Symbol geschichtet,
+                     MDL2-Pendant zu checkmark/questionmark.circle.fill) + Text. -->
+                <Grid x:Name="FeedbackContent" Visibility="Collapsed">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid VerticalAlignment="Center">
+                        <TextBlock x:Name="FeedbackCircle" FontFamily="Segoe MDL2 Assets" FontSize="16" Text="&#xF136;"/>
+                        <TextBlock x:Name="FeedbackSymbol" FontFamily="Segoe MDL2 Assets" FontSize="16" Text="&#xF13E;" Foreground="#0E1011"/>
+                    </Grid>
+                    <TextBlock x:Name="FeedbackText" Grid.Column="2" FontSize="13" FontWeight="Medium"
+                               Foreground="White" VerticalAlignment="Center"
+                               TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                </Grid>
+            </Grid>
+        </Grid>
+        <!-- Randlose Präsentation: SignalReactive/SignalBare/KITT im reinen Diktat. -->
+        <overlay:WaveformRenderer x:Name="BareWaveform" Visibility="Collapsed"/>
+    </Grid>
+</Window>

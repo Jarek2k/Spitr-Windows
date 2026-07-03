@@ -63,6 +63,19 @@ jobs:
             -PassThru -Wait -NoNewWindow
           Write-Host "selftest exit code: $($p.ExitCode)"
           exit $p.ExitCode
+      - name: Overlay screenshots (Review-Medium fürs blinde UI)
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath "artifacts/publish/Spitr.exe" `
+            -ArgumentList '--screenshot-overlays','artifacts/screenshots' `
+            -PassThru -Wait -NoNewWindow
+          exit $p.ExitCode
+      - name: Upload overlay screenshots
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: overlay-screenshots
+          path: artifacts/screenshots/
       - name: Upload publish artifact
         uses: actions/upload-artifact@v4
         if: always()

@@ -61,7 +61,7 @@ public sealed class TextInsertionService : Spitr.Core.Recording.ITextInsertionSe
         var prepared = Spitr.Core.Text.SmartSpacing.Prepare(text, precedingCharacter: null, SmartSpacing);
         if (prepared.Length == 0) return;
 
-        if (ForegroundInfo.IsForegroundElevated())
+        if (ForegroundInfo.IsPasteBlockedByElevation())
         {
             // UIPI verwirft SendInput an erhöhte Fenster lautlos — gar nicht
             // erst versuchen. Text ohne Restore aufs Clipboard legen (der
