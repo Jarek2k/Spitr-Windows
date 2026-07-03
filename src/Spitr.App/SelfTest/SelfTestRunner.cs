@@ -93,12 +93,14 @@ internal static class SelfTestRunner
 
         // CI-Desktops geben Foreground nicht immer freiwillig her — explizit
         // nach vorn zwingen und den Tastaturfokus auf die Box setzen.
-        var hwnd = new System.Windows.Interop.WindowInteropHelper(window).Handle;
-        global::Windows.Win32.PInvoke.SetForegroundWindow((global::Windows.Win32.Foundation.HWND)hwnd);
+        var hwnd = (global::Windows.Win32.Foundation.HWND)
+            new System.Windows.Interop.WindowInteropHelper(window).Handle;
+        global::Windows.Win32.PInvoke.SetForegroundWindow(hwnd);
         box.Focus();
         System.Windows.Input.Keyboard.Focus(box);
         await Task.Delay(500);
-        Console.WriteLine($"[selftest] foreground={global::Windows.Win32.PInvoke.GetForegroundWindow() == (global::Windows.Win32.Foundation.HWND)hwnd} keyboardFocus={box.IsKeyboardFocused}");
+        var isForeground = global::Windows.Win32.PInvoke.GetForegroundWindow() == hwnd;
+        Console.WriteLine($"[selftest] foreground={isForeground} keyboardFocus={box.IsKeyboardFocused}");
 
         // Zustandsübergänge sichtbar machen — bei einem Fehlschlag ist im
         // CI-Log sonst nicht unterscheidbar, ob Transkription oder Paste hakt.
